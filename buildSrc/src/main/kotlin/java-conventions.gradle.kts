@@ -4,18 +4,9 @@ plugins {
 }
 
 repositories {
-    mavenLocal()
-    maven {
-        url = uri("https://repo.maven.apache.org/maven2/")
-    }
-
-    maven {
-        url = uri("https://nexus.egg82.me/repository/maven-releases/")
-    }
+    mavenCentral()
+    maven("https://nexus.egg82.me/repository/maven-releases/")
 }
-
-group = "de.hexaoxi"
-version = "1.0.0-SNAPSHOT"
 
 java {
     withSourcesJar()

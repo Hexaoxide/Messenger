@@ -6,9 +6,9 @@ jupiterApi = { module = "org.junit.jupiter:junit-jupiter-api", version = "5.10.0
 fastutil = { module = "it.unimi.dsi:fastutil", version = "8.2.2" }
 zstdJni = { module = "com.github.luben:zstd-jni", version.ref = "zstd" }
 nettyBuffer = { module = "io.netty:netty-buffer", version = "4.1.65.Final" }
-caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version = "3.0.3" }
+caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version = "3.1.8" }
 slf4jApi = { module = "org.slf4j:slf4j-api", version = "1.7.32" }
 jbAnnotations = { module = "org.jetbrains:annotations", version = "22.0.0" }
-jnats = { module = "io.nats:jnats", version = "2.12.0" }
-rmq = { module = "com.rabbitmq:amqp-client", version = "5.13.1" }
-jedis = { module = "redis.clients:jedis", version = "3.7.0" }
+jnats = { module = "io.nats:jnats", version = "2.16.14" }
+rmq = { module = "com.rabbitmq:amqp-client", version = "5.18.0" }
+jedis = { module = "redis.clients:jedis", version = "5.0.0" }

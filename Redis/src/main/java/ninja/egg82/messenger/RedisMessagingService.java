@@ -56,7 +56,7 @@ public class RedisMessagingService extends AbstractMessagingService {
 
             for (Jedis blockedConnection : this.blockedConnections) {
                 try {
-                    blockedConnection.getClient().getSocket().close();
+                    blockedConnection.getClient().disconnect();
                 } catch (final Exception e) {
                     throw new RuntimeException(e);
                 }
