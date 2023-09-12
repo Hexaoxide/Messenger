@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.*;
@@ -71,14 +70,7 @@ public class PacketService {
     public boolean removeMessenger(@NotNull String serviceName) {
         servicesLock.writeLock().lock();
         try {
-            for (Iterator<MessagingService> i = messengers.iterator(); i.hasNext();) {
-                MessagingService m = i.next();
-                if (m.getName().equals(serviceName)) {
-                    i.remove();
-                    return true;
-                }
-            }
-            return false;
+            return this.messengers.removeIf(s -> s.getName().equals(serviceName));
         } finally {
             servicesLock.writeLock().unlock();
         }
