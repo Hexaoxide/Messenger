@@ -18,6 +18,7 @@ import redis.clients.jedis.exceptions.JedisException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
@@ -35,6 +36,9 @@ public class RedisMessagingService extends AbstractMessagingService {
     private volatile boolean closed = false;
     private final ReadWriteLock queueLock = new ReentrantReadWriteLock();
 
+    // track blocked connections to be closed later - https://github.com/redis/jedis/issues/2330
+    private final List<Jedis> blockedConnections = new CopyOnWriteArrayList<>();
+
     private final String channelName;
     private final byte[] channelNameBytes;
 
@@ -49,6 +53,15 @@ public class RedisMessagingService extends AbstractMessagingService {
         queueLock.writeLock().lock();
         try {
             closed = true;
+
+            for (Jedis blockedConnection : this.blockedConnections) {
+                try {
+                    blockedConnection.getClient().getSocket().close();
+                } catch (final Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
             workPool.shutdown();
             try {
                 if (!workPool.awaitTermination(4L, TimeUnit.SECONDS)) {
@@ -156,15 +169,31 @@ public class RedisMessagingService extends AbstractMessagingService {
 
                 service.packetService.addMessenger(service);
 
+                int failures = 0;
                 while (!service.isClosed()) {
+                    if (failures > 0) {
+                        try {
+                            Thread.sleep(failures * 50L);
+                        } catch (final InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
+                    }
+                    Jedis j = null;
                     try (Jedis redis = service.pool.getResource()) {
+                        j = redis;
+                        service.blockedConnections.add(redis);
                         redis.subscribe(
                                 service.pubSub,
                                 service.channelNameBytes
                         );
                     } catch (JedisException ex) {
                         if (!service.isClosed()) {
+                            failures++;
                             service.logger.warn("Redis pub/sub disconnected. Reconnecting..");
+                        }
+                    } finally {
+                        if (j != null) {
+                            service.blockedConnections.remove(j);
                         }
                     }
                 }
